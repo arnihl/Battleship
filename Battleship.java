@@ -1,44 +1,18 @@
-import java.util.Random;
+
 
 public class Battleship {
 
     private static boolean[][] table = new boolean[10][10];
 
     public static void main(String[] args){
-        // Starta BStable,
-        int count = 0; 
+
         BSTable bsTable = new BSTable();
+
         int k = 100;
-        for(int i = 0; i < k; i++){
-            table = new boolean[10][10];
-            bsTable.resetTable();
-            bsTable.setShips();
-            randomGuesses(bsTable);
-            count += bsTable.getBombCount();
-        }
-        System.out.println("Random guesses average: "
-         + (count/k) + " in " + k + " tests");
-        count = 0; 
-        for(int i = 0; i < k; i++){
-            table = new boolean[10][10];
-            bsTable.resetTable();
-            bsTable.setShips();
-            betterGuesses(bsTable);
-            count += bsTable.getBombCount();
-        }
-        table = new boolean[10][10];
-        System.out.println("Better guesses average: "
-         + (count/k) + " in " + k + " tests");
-        count = 0; 
-        for(int i = 0; i < k; i++){
-            table = new boolean[10][10];
-            bsTable.resetTable();
-            bsTable.setShips();
-            divide(bsTable);
-            count += bsTable.getBombCount();
-        }
-        System.out.println("Divide and conquer average: "
-         + (count/k) + " in " + k + " tests");
+        randomGuessTest(k, bsTable);
+        betterGuessTest(k,bsTable);
+        divideAndConquerTest(k,bsTable);
+    
     }
 
     // gráðug aðferð, notar eintóm gisk
@@ -91,6 +65,12 @@ public class Battleship {
     public static String workAround(int x, int y, BSTable bsTable){
         int originX = x;
         int originY = y;
+        int horizontalStartY = 0;
+        int horizontalEndY = 0;
+
+        int verticalStartX = 0;
+        int verticalEndX = 0;
+
         int count = 0; 
 
         // tjékka hvort það virki að hækka x
@@ -101,6 +81,7 @@ public class Battleship {
                 table[x][y] = true;
                 if(t.equals("HIT")){
                     count++;
+                    verticalEndX++;
                 }
                 else if(t.equals("LOST")){
                     return "LOST";
@@ -108,10 +89,9 @@ public class Battleship {
                     break;
                 }
             } else {
-                break;
+                continue;
             }
         }
-        if(count == 4) return " ";
         // tjékka hvort það virki að lækka x
         x = originX;
         while(x > 0){
@@ -120,7 +100,9 @@ public class Battleship {
                 table[x][y] = true;
                 String t = bsTable.dropBomb(x, y);
                 if(t.equals("HIT")){
+                    verticalStartX--;
                     count++;
+
                 }
                 else if(t.equals("LOST")){
                     return "LOST";
@@ -128,10 +110,9 @@ public class Battleship {
                     break;
                 }
             } else {
-                break;
+                continue;
             }
         }
-        if(count == 4) return " ";
         x = originX;
         // tjékka hvort það virki að hækka y
         while(y<9){
@@ -140,6 +121,7 @@ public class Battleship {
                 table[x][y] = true;
                 String t = bsTable.dropBomb(x, y);
                 if(t.equals("HIT")){
+                    horizontalEndY++;
                     count++;
                 }
                 else if(t.equals("LOST")){
@@ -147,12 +129,13 @@ public class Battleship {
                 } else {
                     break;
                 }
-            } else {
-                break;
+            } 
+            else {
+                continue;
             }
+            
         }
         y = originY;
-        if(count == 4) return " ";
         // tjékka hvort það virki að lækka y
         while(y>0){
             y--;
@@ -168,8 +151,41 @@ public class Battleship {
                     break;
                 }
             } else {
-                break;
+                continue;
             }
+        }
+        // ef sprengjutalningin er hærri en 4
+        // þýðir það að við höfum samliggjandi skip 
+        // einhverstaðar.
+        // skipin geta bara verið á endum þess skips sem við sprengdum
+        // þannig að við sendum þau hnit í workaround fallið aftur
+        if(count>=5){
+            String b = "";
+            if(verticalEndX != 0){
+                b = workAround(originX+verticalEndX, originY, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                }
+            } 
+            if(verticalStartX != 0){
+                b = workAround(originX+verticalStartX, originY, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                }
+            }
+            if(horizontalEndY != 0){
+                b = workAround(originX, originY+horizontalEndY, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                }
+            }
+            if(horizontalStartY != 0){
+                b = workAround(originX, originY+horizontalStartY, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                }
+            }
+
         }
 
         return " ";
@@ -206,6 +222,14 @@ public class Battleship {
         //      ef skip finnst; leita í kringum skotstað með hjálparfallinu "workaround"
         // Skila streng "LOST" ef öll skip eru sokkin. 
         for(int i = 0; i <5; i++){
+            if(table[x+i][y+i]){
+                String b = workAround(x+i, y+i, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                } else {
+                    continue;
+                }
+            }
             String t = bsTable.dropBomb(x+i, y+i);
             if(t.equals("HIT")){
                 String b = workAround(x+i, y+i, bsTable);
@@ -215,6 +239,50 @@ public class Battleship {
             }
         }
         return " "; 
+    }
+
+    public static void randomGuessTest(int k, BSTable bsTable){
+        int count = 0; 
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            randomGuesses(bsTable);
+            count += bsTable.getBombCount();
+        }
+        System.out.println("Random guesses average: "
+         + (count/k) + " in " + k + " tests");
+    }
+
+    public static void betterGuessTest(int k, BSTable bsTable){
+        int count = 0;
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            betterGuesses(bsTable);
+            count += bsTable.getBombCount();
+        }
+        table = new boolean[10][10];
+        System.out.println("Better guesses average: "
+         + (count/k) + " in " + k + " tests");
+    }
+
+    public static void divideAndConquerTest(int k, BSTable bsTable){
+        int count = 0; 
+        int errorCount = 0;
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            divide(bsTable);
+            count += bsTable.getBombCount();
+            if(bsTable.getShipCount() != 0){
+                errorCount++;
+            }
+        }
+        System.out.println("Divide and conquer average: "
+         + (count/k) + " in " + k + " tests" + " and error rate: " + errorCount);
     }
 
 
