@@ -6,13 +6,39 @@ public class Battleship {
 
     public static void main(String[] args){
         // Starta BStable,
+        int count = 0; 
         BSTable bsTable = new BSTable();
-        bsTable.setShips();
-        bsTable.printTable();
-        betterGuesses(bsTable);
-        bsTable.printTable();
-        System.out.println("Ships sunk in " + bsTable.getBombCount() + " tries");
-
+        int k = 100;
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            randomGuesses(bsTable);
+            count += bsTable.getBombCount();
+        }
+        System.out.println("Random guesses average: "
+         + (count/k) + " in " + k + " tests");
+        count = 0; 
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            betterGuesses(bsTable);
+            count += bsTable.getBombCount();
+        }
+        table = new boolean[10][10];
+        System.out.println("Better guesses average: "
+         + (count/k) + " in " + k + " tests");
+        count = 0; 
+        for(int i = 0; i < k; i++){
+            table = new boolean[10][10];
+            bsTable.resetTable();
+            bsTable.setShips();
+            divide(bsTable);
+            count += bsTable.getBombCount();
+        }
+        System.out.println("Divide and conquer average: "
+         + (count/k) + " in " + k + " tests");
     }
 
     // gráðug aðferð, notar eintóm gisk
@@ -26,7 +52,6 @@ public class Battleship {
             }
             table[x][y] = true;
             String s = bsTable.dropBomb(x, y);
-            System.out.println(s);
             if(s.equals("LOST")){
                 break;
             }
@@ -151,7 +176,46 @@ public class Battleship {
             
     }
 
-    
+    // brýtur borðið í fjóra hluta og leitar að skipum 
+    // í hornalínu á hverjum hlut. 
+    public static void divide(BSTable bsTable){
+        // Skipta borði í fjóra hluta
+        // kalla á fall sem leitar í hornalínunni 
+        // í hverjum fjórðungi. 
+        // Ef strengnum "LOST" er skilað: hætta
+        int x = 0; 
+        int y = 0;  
+        String first = searchQuarter(bsTable, x, y);
+        if(first.equals("LOST")){
+            return;
+        }
+        String second = searchQuarter(bsTable, x, y+5);
+        if(second.equals("LOST")){
+            return;
+        }
+        String third = searchQuarter(bsTable, x+5, y);
+        if(third.equals("LOST")){
+            return;
+        }
+        String fourth = searchQuarter(bsTable, x+5, y+5);
+    }
+
+    public static String searchQuarter(BSTable bsTable, int x, int y){
+        // Leita í hornalínunni frá x,y til x+5,y+5
+        // Ef ekki er búið að skjóta í x,y áður þá skjóta. 
+        //      ef skip finnst; leita í kringum skotstað með hjálparfallinu "workaround"
+        // Skila streng "LOST" ef öll skip eru sokkin. 
+        for(int i = 0; i <5; i++){
+            String t = bsTable.dropBomb(x+i, y+i);
+            if(t.equals("HIT")){
+                String b = workAround(x+i, y+i, bsTable);
+                if(b.equals("LOST")){
+                    return "LOST";
+                }
+            }
+        }
+        return " "; 
+    }
 
 
 

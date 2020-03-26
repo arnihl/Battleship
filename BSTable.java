@@ -41,7 +41,6 @@ public class BSTable {
                 } else {
                     setjaNidurSkip(x,y,lodrett);
                 }
-
             }
             else {
                 int y = (int) (Math.random()*5);
@@ -111,9 +110,11 @@ public class BSTable {
     }
 
     public void resetTable(){
-        table = new String[10][10];
-        shipCount = 0;
-        bombCount = 0;
+        for(int i = 0; i < 10; i++){
+            Arrays.fill(this.table[i], " ");
+        }
+        this.shipCount = 0;
+        this.bombCount = 0;
     }
 
     public void printTable(){
