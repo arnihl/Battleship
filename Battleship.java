@@ -7,11 +7,16 @@ public class Battleship {
     public static void main(String[] args){
 
         BSTable bsTable = new BSTable();
-
-        int k = 100;
+       /* bsTable.setShips();
+        bsTable.printTable();
+        divide(bsTable);
+        bsTable.printTable();
+        System.out.println("Bombs: " + bsTable.getBombCount() + " and ships: " + bsTable.getShipCount());
+        */
+        int k = 20;
         randomGuessTest(k, bsTable);
-        betterGuessTest(k,bsTable);
-        divideAndConquerTest(k,bsTable);
+        betterGuessTest(k, bsTable);
+        divideAndConquerTest(k, bsTable);
     
     }
 
@@ -92,6 +97,7 @@ public class Battleship {
                 continue;
             }
         }
+
         // tjékka hvort það virki að lækka x
         x = originX;
         while(x > 0){
@@ -113,6 +119,7 @@ public class Battleship {
                 continue;
             }
         }
+
         x = originX;
         // tjékka hvort það virki að hækka y
         while(y<9){
@@ -135,6 +142,8 @@ public class Battleship {
             }
             
         }
+
+        
         y = originY;
         // tjékka hvort það virki að lækka y
         while(y>0){
@@ -159,7 +168,8 @@ public class Battleship {
         // einhverstaðar.
         // skipin geta bara verið á endum þess skips sem við sprengdum
         // þannig að við sendum þau hnit í workaround fallið aftur
-        if(count>=5){
+        // uncommenta þetta ef við viljum leita að aðliggjandi skipum
+        /*if(count>=5){
             String b = "";
             if(verticalEndX != 0){
                 b = workAround(originX+verticalEndX, originY, bsTable);
@@ -186,8 +196,7 @@ public class Battleship {
                 }
             }
 
-        }
-
+        }*/
         return " ";
             
     }
@@ -241,31 +250,42 @@ public class Battleship {
         return " "; 
     }
 
+    // Eftirfarandi eru test föll, sem testa ákveðnar
+    // aðferðir k sinnum. 
+
     public static void randomGuessTest(int k, BSTable bsTable){
         int count = 0; 
+        int errorCount = 0;
         for(int i = 0; i < k; i++){
             table = new boolean[10][10];
             bsTable.resetTable();
             bsTable.setShips();
             randomGuesses(bsTable);
             count += bsTable.getBombCount();
+            if(bsTable.getShipCount() != 0){
+                errorCount++;
+            }
         }
         System.out.println("Random guesses average: "
-         + (count/k) + " in " + k + " tests");
+         + (count/k) + " in " + k + " tests" + " and error rate: " + errorCount);
     }
 
     public static void betterGuessTest(int k, BSTable bsTable){
         int count = 0;
+        int errorCount = 0;
         for(int i = 0; i < k; i++){
             table = new boolean[10][10];
             bsTable.resetTable();
             bsTable.setShips();
             betterGuesses(bsTable);
             count += bsTable.getBombCount();
+            if(bsTable.getShipCount() != 0){
+                errorCount++;
+            }
         }
         table = new boolean[10][10];
         System.out.println("Better guesses average: "
-         + (count/k) + " in " + k + " tests");
+         + (count/k) + " in " + k + " tests" + " and error rate: " + errorCount);
     }
 
     public static void divideAndConquerTest(int k, BSTable bsTable){
